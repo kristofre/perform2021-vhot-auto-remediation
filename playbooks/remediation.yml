@@ -1,0 +1,136 @@
+---
+- hosts: localhost
+  become: no
+
+  tasks:
+
+  - name: 'push comment to dynatrace'
+    uri:
+      url: "{{ dynatrace_environment_url }}{{ dt_comments_api }}{{ dt_pid }}/comments"
+      method: POST
+      validate_certs: no
+      use_proxy: no
+      headers:
+        Content-Type: "application/json"
+        Authorization: "Api-token {{ dynatrace_api_token }}"
+      body:
+        comment: 'Ansible Play Started ({{ tower_job_id | default("0") }}): {{ awx_template_name }} - Remediation started -- [Ansible Job](http://{{ awx_dns_name }}/#/jobs/playbook/{{ tower_job_id | default("0") }})'
+        user: '{{ dt_comment_user }}'
+        context: '{{ dt_comment_context }}'
+      body_format: json
+
+  - name: 'get dynatrace process instance info: dt get process info'
+    uri:
+      url: "{{ dynatrace_environment_url }}{{ dt_infrastructure_api }}processes/{{ dt_entity_id|upper }}"
+      method: GET
+      validate_certs: no
+      return_content: yes
+      headers:
+        Content-Type: "application/json"
+        Authorization: "Api-token {{ dynatrace_api_token }}"
+      body_format: json
+    register: dtprocessresponse
+
+  - name: 'get dynatrace process instance info: set facts from execution'
+    set_fact:
+      dt_process_host_id: '{{ dtprocessresponse.json.fromRelationships.isProcessOf[0] }}'
+
+  - name: 'get process hostname: dt get host info'
+    uri:
+      url: "{{ dynatrace_environment_url }}{{ dt_infrastructure_api }}hosts/{{ dt_process_host_id | upper }}"
+      method: GET
+      validate_certs: no
+      return_content: yes
+      headers:
+        Content-Type: "application/json"
+        Authorization: "Api-token {{ dynatrace_api_token }}"
+      body_format: json
+    register: dthostresponse
+
+  - name: 'get process hostname: set facts from execution'
+    set_fact:
+      dt_process_host_ip_address: '{{ dthostresponse.json.ipAddresses[0] }}'
+
+  - name: Stop easyTravel processses
+    command: /usr/bin/pkill -f 'java'
+    ignore_errors: yes
+    delegate_to: "{{ dt_process_host_ip_address }}"
+
+  - name: Sleep for 8 seconds
+    wait_for:
+      timeout: 8
+
+  - name: Restart easytravel
+    shell: nohup sh ~/easyTravel/easytravel-2.0.0-x64/weblauncher/weblauncher.sh >/dev/null 2>&1 &
+    delegate_to: "{{ dt_process_host_ip_address }}"
+
+  - name: "wait for easytravel console to come up"
+    uri:
+      url: "http://localhost:8094/main"
+      status_code: 200
+    register: result
+    until: result.status == 200
+    retries: 15
+    delay: 10
+    delegate_to: "{{ dt_process_host_ip_address }}"
+
+  - name: Sleep for 15 seconds before refreshing easyTravel
+    wait_for:
+      timeout: 15
+
+  - name: Refresh easytravel
+    command: timeout 30s /usr/bin/node easytravel.js
+    args:
+      chdir: ~/node/
+    delegate_to: "{{ dt_process_host_ip_address }}"
+
+  - name: Sleep for 10 seconds
+    wait_for:
+      timeout: 10
+
+  - name: Close chrome browser process
+    command: /usr/bin/pkill -f 'chrome'
+    ignore_errors: yes
+    delegate_to: "{{ dt_process_host_ip_address }}"
+
+  - name: "wait for easytravel portal to come up"
+    uri:
+      url: "http://localhost:8080/"
+      status_code: 200
+    register: result
+    until: result.status == 200
+    retries: 15
+    delay: 10
+    delegate_to: "{{ dt_process_host_ip_address }}"
+
+  - name: 'push comment to dynatrace'
+    uri:
+      url: "{{ dynatrace_environment_url }}{{ dt_comments_api }}{{ dt_pid }}/comments"
+      method: POST
+      validate_certs: no
+      use_proxy: no
+      headers:
+        Content-Type: "application/json"
+        Authorization: "Api-token {{ dynatrace_api_token }}"
+      body:
+        comment: 'Ansible Play Started ({{ tower_job_id | default("0") }}): {{ awx_template_name }} - Remediation completed successfully -- [Ansible Job](http://{{ awx_dns_name }}/#/jobs/playbook/{{ tower_job_id | default("0") }})'
+        user: '{{ dt_comment_user }}'
+        context: '{{ dt_comment_context }}'
+      body_format: json
+    when: result.status == 200
+
+  - name: 'push comment to dynatrace'
+    uri:
+      url: "{{ dynatrace_environment_url }}{{ dt_comments_api }}{{ dt_pid }}/comments"
+      method: POST
+      validate_certs: no
+      use_proxy: no
+      headers:
+        Content-Type: "application/json"
+        Authorization: "Api-token {{ dynatrace_api_token }}"
+      body:
+        comment: 'Ansible Play Started ({{ tower_job_id | default("0") }}): {{ awx_template_name }} - Remediation completed unsuccessfully, please resolve manuallys -- [Ansible Job](http://{{ awx_dns_name }}/#/jobs/playbook/{{ tower_job_id | default("0") }})'
+        user: '{{ dt_comment_user }}'
+        context: '{{ dt_comment_context }}'
+      body_format: json
+    when: result.status != 200
