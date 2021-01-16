@@ -7,7 +7,7 @@
 
   - name: set fact for public ip used for ha proxy lb
     set_fact:
-      et_host_ip: "{{ hostvars['easytravel']['ansible_host'] }}"
+      et_host_ip: "{{ hostvars['easyTravel']['ansible_host'] }}"
 
   - name: Add backend to haproxy config
     template:
