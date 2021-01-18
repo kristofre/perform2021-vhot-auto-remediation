@@ -10,4 +10,4 @@
       method: GET
       status_code: [200, 201, 202]
       validate_certs: no
-    delegate_to: easytravel
+    delegate_to: easyTravel
