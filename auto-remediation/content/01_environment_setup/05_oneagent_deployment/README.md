@@ -16,22 +16,6 @@
     vi oneagent.yml
     ```
 
-    ```yaml
-    ---
-    - hosts: localhost
-    become: true
-    roles:
-        - role: dynatrace.oneagent
-    vars:
-        dynatrace_environment_url: your-environment-id.live.dynatrace.com
-        dynatrace_paas_token: your-paas-token
-        dynatrace_oneagent_host_metadata: environment=prod app=easytravel supportgroup=easyTravel-Support
-        dynatrace_oneagent_install_args:
-            --set-app-log-content-access: true
-            --set-infra-only: false
-            --set-host-group: easytravel-production
-    ```
-
 1. Install OneAgent
 
     ```bash
