@@ -1,0 +1,384 @@
+---
+- hosts: localhost
+  become: no
+  gather_facts: yes
+  vars:
+    awx_user: admin
+    awx_password: dynatrace
+    public_ip: "{{ lookup('env', 'PUBLICIP') }}"
+  vars_files:
+    - ../extra_vars.json
+
+  tasks:
+
+  - name: set fact for ansible AWX URL
+    set_fact:
+      awx_url: "https://{{ ansible_default_ipv4.address }}"
+
+  - name: create dynatrace api token credential type
+    uri:
+      url: "{{ awx_url }}/api/v2/credential_types/"
+      user: "{{ awx_user }}"
+      password: "{{ awx_password }}"
+      force_basic_auth: yes
+      validate_certs: false
+      method: POST
+      status_code: [200, 201, 204]
+      headers:
+        Content-Type: "application/json"
+      body:
+        name: Dynatrace API Token
+        description: ''
+        kind: cloud
+        namespace:
+        managed_by_tower: false
+        inputs: 
+          fields:
+          - id: dt_api_token
+            type: string
+            label: Dynatrace API Token
+            secret: true
+          required:
+          - dt_api_token
+        injectors:
+          extra_vars:
+            dynatrace_api_token: "{{ '{{' }} dt_api_token {{ '}}' }}"
+      body_format: json
+    register: credential_type_result
+
+  - name: create dynatrace api token credential
+    uri:
+      url: "{{ awx_url }}/api/v2/credentials/"
+      user: "{{ awx_user }}"
+      password: "{{ awx_password }}"
+      force_basic_auth: yes
+      validate_certs: false
+      method: POST
+      status_code: [200, 201, 204]
+      headers:
+        Content-Type: "application/json"
+      body:
+        name: "{{ dt_environment_url }} API Token"
+        kind: cloud
+        organization: 1
+        credential_type: "{{ credential_type_result.json.id }}"
+        inputs:
+          dt_api_token: "{{ dt_api_token }}"
+      body_format: json
+    register: dt_credential_result
+
+  - name: create haproxy machine credential
+    uri:
+      url: "{{ awx_url }}/api/v2/credentials/"
+      user: "{{ awx_user }}"
+      password: "{{ awx_password }}"
+      force_basic_auth: yes
+      validate_certs: false
+      method: POST
+      status_code: [200, 201, 204]
+      headers:
+        Content-Type: "application/json"
+      body:
+        name: HAProxy SSH creds
+        credential_type: 1
+        kind: ssh
+        organization: 1
+        inputs:
+          username: ansible
+          password: dynatrace
+          become_method: sudo
+          become_password: dynatrace
+      body_format: json
+    register: haproxy_credential_result
+
+  - name: create easyTravel machine credential
+    uri:
+      url: "{{ awx_url }}/api/v2/credentials/"
+      user: "{{ awx_user }}"
+      password: "{{ awx_password }}"
+      force_basic_auth: yes
+      validate_certs: false
+      method: POST
+      status_code: [200, 201, 204]
+      headers:
+        Content-Type: "application/json"
+      body:
+        name: easyTravel SSH creds
+        credential_type: 1
+        kind: ssh
+        organization: 1
+        inputs:
+          username: "{{ lookup('env', 'USER') }}"
+          password: '@perform2021'
+          become_method: sudo
+          become_password: '@perform2021'
+      body_format: json
+    register: easytravel_credential_result
+
+  - name: create remediation project
+    uri:
+      url: "{{ awx_url }}/api/v2/projects/"
+      user: "{{ awx_user }}"
+      password: "{{ awx_password }}"
+      force_basic_auth: yes
+      validate_certs: false
+      method: POST
+      status_code: [200, 201, 204]
+      headers:
+        Content-Type: "application/json"
+      body:
+        name: Automated Remediation
+        description: ''
+        scm_type: git
+        scm_url: "{{ github_url }}"
+        scm_branch: main
+        scm_clean: true
+        scm_delete_on_update: false
+        timeout: 0
+        organization: 1
+        scm_update_on_launch: true
+        scm_update_cache_timeout: 10
+      body_format: json
+    register: project_result
+
+  - name: wait for project to be on successful state
+    uri:
+      url: "{{ awx_url }}/api/v2/projects/{{ project_result.json.id }}"
+      user: "{{ awx_user }}"
+      password: "{{ awx_password }}"
+      force_basic_auth: yes
+      validate_certs: false
+      method: GET
+      status_code: [200, 201, 204]
+      headers:
+        Content-Type: "application/json"
+    register: project_object
+    until: project_object.json.status == "successful"
+    retries: 15
+    delay: 10
+
+  - name: create remediation inventory
+    uri:
+      url: "{{ awx_url }}/api/v2/inventories/"
+      user: "{{ awx_user }}"
+      password: "{{ awx_password }}"
+      force_basic_auth: yes
+      validate_certs: false
+      method: POST
+      status_code: [200, 201, 204]
+      return_content: yes
+      headers:
+        Content-Type: "application/json"
+      body:
+        name: Remediation inventory
+        description: ''
+        organization: 1
+        variables: |
+          ---
+          dynatrace_environment_url: {{ dt_environment_url }}
+          dt_comments_api: /api/v1/problem/details/
+          dt_events_api: /api/v1/events
+          dt_infrastructure_api: /api/v1/entity/infrastructure/
+          dt_metrics_api: /api/v2/metrics/ 
+          dt_comment_user: 'ansible'
+          dt_comment_context: 'ansible AWX'
+          awx_dns_name: {{ public_ip }}
+      body_format: json
+    register: inventory_result
+
+  - name: create easyTravel host for inventory
+    uri:
+      url: "{{ awx_url }}/api/v2/inventories/{{ inventory_result.json.id }}/hosts/"
+      user: "{{ awx_user }}"
+      password: "{{ awx_password }}"
+      force_basic_auth: yes
+      validate_certs: false
+      method: POST
+      status_code: [200, 201, 204]
+      return_content: yes
+      headers:
+        Content-Type: "application/json"
+      body:
+        name: easyTravel
+        enabled: true
+        description: ''
+        variables: |
+          ---
+          ansible_host: {{ ansible_default_ipv4.address }}
+      body_format: json
+
+  - name: create HAProxy host for inventory
+    uri:
+      url: "{{ awx_url }}/api/v2/inventories/{{ inventory_result.json.id }}/hosts/"
+      user: "{{ awx_user }}"
+      password: "{{ awx_password }}"
+      force_basic_auth: yes
+      validate_certs: false
+      method: POST
+      status_code: [200, 201, 204]
+      return_content: yes
+      headers:
+        Content-Type: "application/json"
+      body:
+        name: haproxy
+        enabled: true
+        variables: |
+          ---
+          ansible_host: {{ haproxy_ip }}
+      body_format: json
+
+  - name: create localhost for inventory
+    uri:
+      url: "{{ awx_url }}/api/v2/inventories/{{ inventory_result.json.id }}/hosts/"
+      user: "{{ awx_user }}"
+      password: "{{ awx_password }}"
+      force_basic_auth: yes
+      validate_certs: false
+      method: POST
+      status_code: [200, 201, 204]
+      return_content: yes
+      headers:
+        Content-Type: "application/json"
+      body:
+        name: localhost
+        enabled: true
+        variables: |
+          ---
+          ansible_connection: local
+          ansible_python_interpreter: '{{ '{{' }} ansible_playbook_python {{ '}}' }}'
+      body_format: json
+
+  - name: create template for HAProxy configuration
+    uri:
+      url: "{{ awx_url }}/api/v2/job_templates/"
+      user: "{{ awx_user }}"
+      password: "{{ awx_password }}"
+      force_basic_auth: yes
+      validate_certs: false
+      method: POST
+      status_code: [200, 201, 204]
+      return_content: yes
+      headers:
+        Content-Type: "application/json"
+      body:
+        name: haproxy configure
+        job_type: run
+        inventory: "{{ inventory_result.json.id }}"
+        project: "{{ project_result.json.id }}"
+        playbook: playbooks/enable_backend.yml
+        verbosity: 0
+        ask_variables_on_launch: false
+        extra_vars: |
+          ---
+      body_format: json
+    register: haproxy_template_result
+
+  - name: create template for remediation
+    uri:
+      url: "{{ awx_url }}/api/v2/job_templates/"
+      user: "{{ awx_user }}"
+      password: "{{ awx_password }}"
+      force_basic_auth: yes
+      validate_certs: false
+      method: POST
+      status_code: [200, 201, 204]
+      return_content: yes
+      headers:
+        Content-Type: "application/json"
+      body:
+        name: 'Dynatrace Automated Remediation for Memory Leak'
+        job_type: run
+        inventory: "{{ inventory_result.json.id }}"
+        project: "{{ project_result.json.id }}"
+        playbook: playbooks/remediation.yml
+        verbosity: 0
+        ask_variables_on_launch: true
+        extra_vars: |
+          ---
+          awx_template_name: 'Dynatrace Automated Remediation for Memory Leak'
+      body_format: json
+    register: remediation_template_result
+
+  - name: create template for problem trigger
+    uri:
+      url: "{{ awx_url }}/api/v2/job_templates/"
+      user: "{{ awx_user }}"
+      password: "{{ awx_password }}"
+      force_basic_auth: yes
+      validate_certs: false
+      method: POST
+      status_code: [200, 201, 204]
+      return_content: yes
+      headers:
+        Content-Type: "application/json"
+      body:
+        name: 'Trigger Memory Leak on Backend'
+        job_type: run
+        inventory: "{{ inventory_result.json.id }}"
+        project: "{{ project_result.json.id }}"
+        playbook: playbooks/trigger_memory_leak.yml
+        verbosity: 0
+        ask_variables_on_launch: false
+        extra_vars: |
+          ---
+      body_format: json
+    register: trigger_problem_template_result
+
+  - name: assign dt cred to remediation template
+    uri:
+      url: "{{ awx_url }}/api/v2/job_templates/{{ item }}/credentials/"
+      user: "{{ awx_user }}"
+      password: "{{ awx_password }}"
+      force_basic_auth: yes
+      validate_certs: false
+      method: POST
+      status_code: [200, 201, 204]
+      return_content: yes
+      headers:
+        Content-Type: "application/json"
+      body:
+        '{ "id" : {{ dt_credential_result.json.id | int }} }'
+      body_format: json
+    with_items:
+      - "{{ remediation_template_result.json.id }}"
+
+  - name: assign haproxy ssh cred to haproxy config template
+    uri:
+      url: "{{ awx_url }}/api/v2/job_templates/{{ item }}/credentials/"
+      user: "{{ awx_user }}"
+      password: "{{ awx_password }}"
+      force_basic_auth: yes
+      validate_certs: false
+      method: POST
+      status_code: [200, 201, 204]
+      return_content: yes
+      headers:
+        Content-Type: "application/json"
+      body:
+        '{ "id" : {{ haproxy_credential_result.json.id | int }} }'
+      body_format: json
+    with_items:
+      - "{{ haproxy_template_result.json.id }}"
+
+  - name: assign easyTravel ssh cred to remediation template
+    uri:
+      url: "{{ awx_url }}/api/v2/job_templates/{{ item }}/credentials/"
+      user: "{{ awx_user }}"
+      password: "{{ awx_password }}"
+      force_basic_auth: yes
+      validate_certs: false
+      method: POST
+      status_code: [200, 201, 204]
+      return_content: yes
+      headers:
+        Content-Type: "application/json"
+      body:
+        '{ "id" : {{ easytravel_credential_result.json.id | int }} }'
+      body_format: json
+    with_items:
+      - "{{ remediation_template_result.json.id }}"
+      - "{{ trigger_problem_template_result.json.id }}"
+
+  - name: print remediation template id
+    debug:
+      msg: "Remediation template ID: {{ remediation_template_result.json.id }}"
