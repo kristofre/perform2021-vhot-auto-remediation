@@ -6,7 +6,7 @@
     ansible-galaxy install dynatrace.oneagent
     ```
 
-1. Add your dynatrace environment URL and PAAS token to the yaml file on the `ansible` directory:
+1. Add your dynatrace environment (without https://) and PAAS token to the yaml file on the `ansible` directory:
 
     ```bash
     cd ~/ansible/
