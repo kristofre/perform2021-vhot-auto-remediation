@@ -68,6 +68,8 @@ sudo chmod +x /usr/local/bin/docker-compose
 
 # Install AWX pre-requisites
 sudo apt-get install -y python3-pip
+sudo apt install python-docker
+sudo add-apt-repository --yes --update ppa:ansible/ansible
 sudo sudo apt install ansible -y
 sudo pip3 install docker-compose
 
@@ -76,3 +78,55 @@ ansible-galaxy collection install community.general
 
 # Allow sudo without password
 sudo echo '%sudo ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers
+
+# Create Dynatrace Tokens
+printf "Creating PAAS Token for Dynatrace Environment ${DT_CLUSTER_URL}/e/$DT_ENVIRONMENT_ID\n\n"
+
+paas_token_body='{
+                    "scopes": [
+                        "InstallerDownload"
+                    ],
+                    "name": "vhot-monaco-paas"
+                  }'
+
+  DT_PAAS_TOKEN_RESPONSE=$(curl -k -s --location --request POST "${DT_CLUSTER_URL}/e/$DT_ENVIRONMENT_ID/api/v2/apiTokens" \
+  --header "Authorization: Api-Token $DT_ENVIRONMENT_TOKEN" \
+  --header "Content-Type: application/json" \
+  --data-raw "${paas_token_body}")
+  DT_PAAS_TOKEN=$(echo $DT_PAAS_TOKEN_RESPONSE | jq -r '.token' )
+
+  printf "Creating API Token for Dynatrace Environment ${DT_CLUSTER_URL}/e/$DT_ENVIRONMENT_ID\n\n"
+
+  api_token_body='{
+                    "scopes": [
+                      "DataExport", "PluginUpload", "DcrumIntegration", "AdvancedSyntheticIntegration", "ExternalSyntheticIntegration", 
+                      "LogExport", "ReadConfig", "WriteConfig", "DTAQLAccess", "UserSessionAnonymization", "DataPrivacy", "CaptureRequestData", 
+                      "Davis", "DssFileManagement", "RumJavaScriptTagManagement", "TenantTokenManagement", "ActiveGateCertManagement", "RestRequestForwarding", 
+                      "ReadSyntheticData", "DataImport", "auditLogs.read", "metrics.read", "metrics.write", "entities.read", "entities.write", "problems.read", 
+                      "problems.write", "networkZones.read", "networkZones.write", "activeGates.read", "activeGates.write", "credentialVault.read", "credentialVault.write", 
+                      "extensions.read", "extensions.write", "extensionConfigurations.read", "extensionConfigurations.write", "extensionEnvironment.read", "extensionEnvironment.write", 
+                      "metrics.ingest", "securityProblems.read", "securityProblems.write", "syntheticLocations.read", "syntheticLocations.write", "settings.read", "settings.write", 
+                      "tenantTokenRotation.write", "slo.read", "slo.write", "releases.read", "apiTokens.read", "apiTokens.write", "logs.read", "logs.ingest"
+                    ],
+                    "name": "vhot-monaco-api-token"
+                  }'
+                
+  DT_API_TOKEN_RESPONSE=$(curl -k -s --location --request POST "${DT_CLUSTER_URL}/e/$DT_ENVIRONMENT_ID/api/v2/apiTokens" \
+  --header "Authorization: Api-Token $DT_ENVIRONMENT_TOKEN" \
+  --header "Content-Type: application/json" \
+  --data-raw "${api_token_body}")
+  DT_API_TOKEN=$(echo $DT_API_TOKEN_RESPONSE | jq -r '.token' )
+
+
+>/home/dtu.training/extra_vars.json cat <<-EOF
+{
+    "dynatrace_environment_url": "${DT_CLUSTER}/e/$DT_ENVIRONMENT_ID",
+    "dynatrace_paas_token": "$DT_PAAS_TOKEN",
+    "dynatrace_api_token": "$DT_API_TOKEN",
+    "dt_environment_url": "${DT_CLUSTER}/e/$DT_ENVIRONMENT_ID",
+    "dt_api_token": "$DT_API_TOKEN",
+    "dt_pass_token": "$DT_PAAS_TOKEN",
+    "haproxy_ip": "$HAIP",
+    "github_url": "https://github.com/dynatrace-ace/perform2021-vhot-auto-remediation.git"
+}
+EOF

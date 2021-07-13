@@ -12,10 +12,14 @@ variable "gcloud_cred_file" {
   description = "Path to GCloud credential file"
 }
 
-variable "instance_count" {
-  description = "Number of easyTravel instances to provision"
-  default     = 2
+variable "dt_cluster_url" {
+  description = "Dynatrace cluster URL"
 }
+
+variable "dt_cluster_api_token" {
+  description = "Dynatrace cluster API token"
+}
+
 
 variable "instance_size" {
   description = "Size of the bastion host"
@@ -27,19 +31,9 @@ variable "gce_image_name" {
   default     = "ubuntu-minimal-1804-bionic-v20190628"
 }
 
-variable "ssh_pub_key" {
-  description = "Path to public SSH key"
-  default     = "./key.pub"
-}
-
 variable "user_password" {
   description = "Password for linux user"
   default     = "dynatrace"
-}
-
-variable "ssh_priv_key" {
-  description = "Path to private SSH key"
-  default     = "./key"
 }
 
 variable "hostname" {
@@ -55,4 +49,21 @@ variable "gce_username" {
 variable "gce_disk_size" {
   description = "Size of the disk attached to each node, specified in GB. The smallest allowed disk size is 10GB"
   default     = 40
+}
+
+variable "name_prefix" {
+  description = "Name Prefix"
+}
+
+variable "users" {
+  description = "Array of users"
+  default = {}
+}
+
+variable "ssh_keys" {
+  description = "Paths to public and private SSH keys for ace-box user"
+  default = {
+    private = "./key"
+    public  = "./key.pub"
+  }
 }

@@ -8,7 +8,6 @@ CREDS=./extra_vars.json
 echo -e "${YLW}Please enter the credentials as requested below: ${NC}"
 read -p "Dynatrace Tenant (SaaS: http(s)://[TENANT].live.dynatrace.com | Managed: http(s)://mydomain.com/e/[TENANT_GUID]) (default=$DTENV): " DTENVC
 read -p "Dynatrace API Token (default=$DTAPI): " DTAPIC
-read -p "Dynatrace PAAS Token (default=$DTPAAS): " DTPAASC
 read -p "HAProxy IP Address (default=$HAIP): " HAIPC
 echo ""
 
@@ -22,11 +21,6 @@ then
     DTAPI=$DTAPIC
 fi
 
-if [[ $DTPAAS = '' ]]
-then 
-    DTPAAS=$DTPAASC
-fi
-
 if [[ $HAIP = '' ]]
 then 
     HAIP=$HAIPC
@@ -36,7 +30,6 @@ echo ""
 echo -e "${YLW}Please confirm all are correct: ${NC}"
 echo "Dynatrace Tenant: $DTENV"
 echo "Dynatrace API Token: $DTAPI"
-echo "Dynatrace PAAS Token: $DTPAAS"
 echo "HAProxy IP Address: $HAIP"
 read -p "Is this all correct? (y/n) : " -n 1 -r
 echo ""
