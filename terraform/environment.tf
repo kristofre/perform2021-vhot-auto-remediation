@@ -13,7 +13,7 @@ resource "dynatrace_cluster_user_group" "vhot_groups" {
 		{
 			VIEWER = [
 			  "${dynatrace_environment.vhot_env[each.key].id}"
-			],
+			]
 			MANAGE_SETTINGS = [
 			  "${dynatrace_environment.vhot_env[each.key].id}"
 			]
