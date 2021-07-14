@@ -27,7 +27,7 @@ variable "instance_size" {
 
 variable "gce_image_name" {
   description = "The image to use for this vm"
-  default     = "ubuntu-minimal-1804-bionic-v20190628"
+  default     = "ubuntu-minimal-2004-focal-v20210707"
 }
 
 variable "user_password" {
