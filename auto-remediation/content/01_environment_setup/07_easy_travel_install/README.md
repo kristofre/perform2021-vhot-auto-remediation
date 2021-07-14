@@ -3,7 +3,7 @@
 1. Install `easyTravel` by running the following command:
 
     ```bash
-    easyTravel/install_easytravel.sh
+    ~/easyTravel/install_easytravel.sh
     ```
 
     **Note:** The easyTravel URL will be part of the script execution output.
