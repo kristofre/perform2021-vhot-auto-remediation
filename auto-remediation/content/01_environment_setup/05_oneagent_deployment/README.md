@@ -6,7 +6,7 @@
     ansible-galaxy install dynatrace.oneagent
     ```
 
-1. Install OneAgent
+1. Install OneAgent:
 
     ```bash
     ansible-playbook ~/ansible/oneagent.yml

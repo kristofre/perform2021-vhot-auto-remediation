@@ -1,13 +1,9 @@
 ## Install easyTravel
 
-1. Install `easyTravel` by running the following commands:
+1. Install `easyTravel` by running the following command:
 
     ```bash
-    cd ~/easyTravel/
-    ```
-
-    ```bash
-    ./install_easytravel.sh
+    easyTravel/install_easytravel.sh
     ```
 
     **Note:** The easyTravel URL will be part of the script execution output.

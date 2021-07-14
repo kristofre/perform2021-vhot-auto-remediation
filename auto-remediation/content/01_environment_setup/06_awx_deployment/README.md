@@ -1,6 +1,6 @@
 ## Deploy ansible AWX
 
-1. Deploy `Ansible AWX` using the commands below:
+1. Deploy `Ansible AWX` using the command below:
 
     ```bash
     ~/scripts/install_awx.sh
