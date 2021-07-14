@@ -11,7 +11,8 @@
 ### Dynatrace Tenant
 
 1. Confirm login to your Dynatrace Tenant
-**Note:** Login details will be provided by the instructor
+
+    **Note:** Login details will be provided by the instructor
 
 ### ServiceNow instance
 
