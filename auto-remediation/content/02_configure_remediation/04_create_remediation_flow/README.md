@@ -6,7 +6,7 @@ In this step we'll create the suflow that will run the different remediation ste
 
 1. In ServiceNow, navigate to `Process Automation` -> `Flow Designer`, after clicking on Flow designer a new tab will open on your browser.
 i
-1. Click on the `Subflows` tab and then search for `Create ncident` under the Name column, click on the `Create Incident` line to open the subflow:
+1. Click on the `Subflows` tab and then search for `Create Incident` under the Name column, click on the `Create Incident` line to open the subflow:
 
     ![servicenow-create-incident-open](../../../assets/images/servicenow-create-incident-open.png)
 
