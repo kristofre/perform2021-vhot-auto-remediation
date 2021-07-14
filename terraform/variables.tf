@@ -55,8 +55,19 @@ variable "name_prefix" {
 }
 
 variable "users" {
-  description = "Array of users"
-  default = {}
+  description = "Map of lab participants"
+  type = map(object({
+    email = string
+    firstName = string
+    lastName = string
+  }))
+  default = {
+    0 = {
+      email = "john.smith@example.com"
+      firstName = "John"
+      lastName = "Smith"
+    },
+  }
 }
 
 variable "ssh_keys" {
