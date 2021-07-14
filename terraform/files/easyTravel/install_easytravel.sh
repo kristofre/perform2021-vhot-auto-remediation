@@ -1,5 +1,7 @@
 #!/bin/sh
 
+PUBLICIP=$(cat ~/extra_vars.json | jq -r .public_ip)
+
 # Update config file to auto start Standard scenario
 sed -i "s|^config.autostart=.*|config.autostart=Standard|g" ~/easyTravel/easytravel-2.0.0-x64/resources/easyTravelConfig.properties
 

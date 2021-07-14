@@ -5,7 +5,6 @@
   vars:
     awx_user: admin
     awx_password: dynatrace
-    public_ip: "{{ lookup('env', 'PUBLICIP') }}"
   vars_files:
     - ../extra_vars.json
 

@@ -20,7 +20,6 @@ variable "dt_cluster_api_token" {
   description = "Dynatrace cluster API token"
 }
 
-
 variable "instance_size" {
   description = "Size of the bastion host"
   default     = "n1-standard-2"

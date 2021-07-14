@@ -62,7 +62,7 @@ resource "google_compute_instance" "haproxy-vm" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x ~/*.sh",
-      "sudo sh ~/install_haproxy.sh"
+      "sudo ~/install_haproxy.sh"
     ]
   }
 

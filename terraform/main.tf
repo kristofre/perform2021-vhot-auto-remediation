@@ -9,7 +9,7 @@ terraform {
       source = "dynatrace.com/com/dynatrace"
     }
     google = {
-      version = "3.75.0 "
+      version = "3.75.0"
     }
   }
 }

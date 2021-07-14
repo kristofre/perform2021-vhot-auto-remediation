@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+PUBLICIP=$(cat ~/extra_vars.json | jq -r .public_ip)
+
 ## Set values for inventory file
 
 ## Pass the full path of awx-bundled-cert.crt file to ssl_certificate variable in inventory.
@@ -16,9 +18,6 @@ ansible-playbook -i inventory install.yml || true
 
 ## Wait for AWX to finish deploying
 timeout 500 bash -c 'while [[ "$(curl -k -s -o /dev/null -w ''%{http_code}'' https://localhost)" != "200" ]]; do echo "waiting for ansible AWX to finish deploying..." &&  sleep 10; done'
-
-## Rerun AWX deployment
-ansible-playbook -i inventory install.yml || true
 
 ## Configure AWX
 ansible-playbook ~/ansible/awx_config.yml

@@ -67,14 +67,16 @@ sudo mv docker-compose /usr/local/bin/
 sudo chmod +x /usr/local/bin/docker-compose
 
 # Install AWX pre-requisites
-sudo apt-get install -y python3-pip
-sudo apt install python-docker
+sudo apt install -y python3-pip
+sudo apt install -y python-docker
 sudo add-apt-repository --yes --update ppa:ansible/ansible
 sudo sudo apt install ansible -y
-sudo pip3 install docker-compose
-
-# Install ansible community modules
 ansible-galaxy collection install community.general
+ansible-galaxy install dynatrace.oneagent
+sudo python3 -m pip install -U pip
+sudo python3 -m pip install -U setuptools
+sudo pip3 install docker-compose
+sudo pip3 install docker
 
 # Allow sudo without password
 sudo echo '%sudo ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers
@@ -123,10 +125,11 @@ paas_token_body='{
     "dynatrace_environment_url": "${DT_CLUSTER}/e/$DT_ENVIRONMENT_ID",
     "dynatrace_paas_token": "$DT_PAAS_TOKEN",
     "dynatrace_api_token": "$DT_API_TOKEN",
-    "dt_environment_url": "${DT_CLUSTER}/e/$DT_ENVIRONMENT_ID",
+    "dt_environment_url": "${DT_CLUSTER_URL}/e/$DT_ENVIRONMENT_ID",
     "dt_api_token": "$DT_API_TOKEN",
     "dt_pass_token": "$DT_PAAS_TOKEN",
     "haproxy_ip": "$HAIP",
-    "github_url": "https://github.com/dynatrace-ace/perform2021-vhot-auto-remediation.git"
+    "github_url": "https://github.com/dynatrace-ace/perform2021-vhot-auto-remediation.git",
+    "public_ip": "$VM_PUBLIC_IP"
 }
 EOF

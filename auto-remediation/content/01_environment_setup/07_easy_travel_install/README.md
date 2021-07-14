@@ -7,10 +7,6 @@
     ```
 
     ```bash
-    java -jar dynatrace-easytravel-linux-x86_64.jar -y
-    ```
-
-    ```bash
     ./install_easytravel.sh
     ```
 

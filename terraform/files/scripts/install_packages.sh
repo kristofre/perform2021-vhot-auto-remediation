@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
-
 ## Get the 17.0.1 release of ansible awx tarball and extract it. 
 cd ~
 AWX_VERSION=17.0.1
@@ -9,9 +7,6 @@ curl -L -o ansible-awx-$AWX_VERSION.tar.gz https://github.com/ansible/awx/archiv
 tar xvfz ansible-awx-$AWX_VERSION.tar.gz && \
 rm -f ansible-awx-$AWX_VERSION.tar.gz && \
 mv awx-$AWX_VERSION/ awx/
-
-# Set env vars
-echo 'export PUBLICIP=$(curl -k -s ifconfig.me)' >> ~/.bashrc
 
 # Set up node project
 npm --prefix ~/node/ i puppeteer

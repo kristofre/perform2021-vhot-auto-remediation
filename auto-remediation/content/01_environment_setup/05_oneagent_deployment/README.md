@@ -9,11 +9,7 @@
 1. Install OneAgent
 
     ```bash
-    cd ~/ansible/
-    ```
-
-    ```bash
-    ansible-playbook oneagent.yml
+    ansible-playbook ~/ansible/oneagent.yml
     ```
 
 1. You can verify the OneAgent intallation by running the following command:
