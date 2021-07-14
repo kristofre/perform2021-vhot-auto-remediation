@@ -9,3 +9,9 @@ In this step we will create the dynatrace tokens needed to download and install 
 ### Create Dynatrace PAAS token
 
 1. A PAAS token has been automatically generated for this lab.
+
+You can verify that the credentials are setup by viewing the `extra_vars.json` on your home directory:
+
+  ```bas
+  cat ~/extra_vars.json
+  ```

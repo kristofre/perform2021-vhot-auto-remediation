@@ -3,11 +3,7 @@
 1. Deploy `Ansible AWX` using the commands below:
 
     ```bash
-    cd ~/scripts/
-    ```
-
-    ```bash
-    ./install_awx.sh
+    ~/scripts/install_awx.sh
     ```
 
     **Note:** The AWX URL and login details will be part of the script execution output.
