@@ -108,9 +108,9 @@
         organization: 1
         inputs:
           username: "{{ lookup('env', 'USER') }}"
-          password: '@perform2021'
+          password: "{{ awx_password }}"
           become_method: sudo
-          become_password: '@perform2021'
+          become_password: "{{ awx_password }}"
       body_format: json
     register: easytravel_credential_result
 
