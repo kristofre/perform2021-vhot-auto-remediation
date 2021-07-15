@@ -54,6 +54,11 @@ variable "name_prefix" {
   description = "Name Prefix"
 }
 
+variable "environment_state" {
+  description = "State of Dynatrace environment"
+  default = "ENABLED"
+}
+
 variable "users" {
   description = "Map of lab participants"
   type = map(object({
@@ -67,13 +72,5 @@ variable "users" {
       firstName = "John"
       lastName = "Smith"
     },
-  }
-}
-
-variable "ssh_keys" {
-  description = "Paths to public and private SSH keys for ace-box user"
-  default = {
-    private = "./key"
-    public  = "./key.pub"
   }
 }
