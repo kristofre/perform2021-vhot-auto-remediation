@@ -41,7 +41,7 @@ resource "google_compute_instance" "haproxy-vm" {
   }
 
   metadata = {
-    sshKeys = "ubuntu:${file(var.ssh_keys["public"])}"
+    sshKeys = "${var.gce_username}:${tls_private_key.acebox_key.public_key_openssh}"
   }
 
   tags = ["haproxy-${random_id.instance_id.hex}"]
@@ -50,7 +50,7 @@ resource "google_compute_instance" "haproxy-vm" {
     host        = self.network_interface.0.access_config.0.nat_ip
     type        = "ssh"
     user        = var.gce_username
-    private_key = file(var.ssh_keys["private"])
+    private_key = tls_private_key.acebox_key.private_key_pem
   }
 
   ## Add easyTravel binary to home dir

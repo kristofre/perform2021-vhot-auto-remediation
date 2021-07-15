@@ -17,6 +17,18 @@ resource "google_compute_firewall" "allow_http" {
   target_tags = ["ubuntu-${random_id.instance_id.hex}"]
 }
 
+## Create key pair
+resource "tls_private_key" "acebox_key" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+resource "local_file" "acebox_pem" { 
+  filename = "${path.module}/key"
+  content = tls_private_key.acebox_key.private_key_pem
+  file_permission = 400
+}
+
 # A single Google Cloud Engine instance
 resource "google_compute_instance" "ubuntu-vm" {
   for_each = var.users
@@ -42,7 +54,7 @@ resource "google_compute_instance" "ubuntu-vm" {
   }
 
   metadata = {
-    sshKeys = "ubuntu:${file(var.ssh_keys["public"])}"
+    sshKeys = "${var.gce_username}:${tls_private_key.acebox_key.public_key_openssh}"
   }
 
   tags = ["ubuntu-${random_id.instance_id.hex}"]
@@ -51,7 +63,7 @@ resource "google_compute_instance" "ubuntu-vm" {
     host        = self.network_interface.0.access_config.0.nat_ip
     type        = "ssh"
     user        = var.gce_username
-    private_key = file(var.ssh_keys["private"])
+    private_key = tls_private_key.acebox_key.private_key_pem
   }
 
   ## Add easyTravel binary to home dir
