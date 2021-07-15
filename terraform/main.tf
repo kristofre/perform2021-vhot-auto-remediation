@@ -1,6 +1,3 @@
-/*
-   GCP LINUX HOST DEPLOYMENT
-*/
 terraform {
   required_version = ">= 0.13.0"
   required_providers {
@@ -16,8 +13,6 @@ terraform {
 
 # Configure the Google Cloud provider
 provider "google" {
-  # see here how to get this file
-  # https://console.cloud.google.com/apis/credentials/serviceaccountkey 
   credentials = file(var.gcloud_cred_file)
   project     = var.gcloud_project
   region      = join("-", slice(split("-", var.gcloud_zone), 0, 2))

@@ -20,7 +20,7 @@ resource "google_compute_firewall" "haproxy_allow_http" {
 
 # A single Google Cloud Engine instance
 resource "google_compute_instance" "haproxy-vm" {
-  name         = "haproxy-vm"
+  name         = "haproxy-vm-${random_id.instance_id.hex}"
   machine_type = var.instance_size
   zone         = var.gcloud_zone
 
