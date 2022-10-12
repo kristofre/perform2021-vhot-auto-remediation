@@ -79,6 +79,8 @@
       timeout: 15
 
   - name: Refresh easytravel
+    become: true
+    become_user: ubuntu
     command: timeout 30s /usr/bin/node easytravel.js
     args:
       chdir: ~/node/
