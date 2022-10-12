@@ -51,59 +51,70 @@
     set_fact:
       dt_process_host_ip_address: '{{ dthostresponse.json.ipAddresses[0] }}'
 
-  - name: Stop easyTravel processses
-    command: /usr/bin/pkill -f 'java'
+#   - name: Stop easyTravel processses
+#     command: /usr/bin/pkill -f 'java'
+#     ignore_errors: yes
+#     delegate_to: "{{ dt_process_host_ip_address }}"
+
+  - name: Stop easyTravel backend
+    command: /usr/bin/pkill -f 'com.dynatrace.easytravel.business.backend.jar'
     ignore_errors: yes
     delegate_to: "{{ dt_process_host_ip_address }}"
 
-  - name: Sleep for 8 seconds
-    wait_for:
-      timeout: 8
+#   - name: Sleep for 8 seconds
+#     wait_for:
+#       timeout: 8
 
-  - name: Restart easytravel
-    shell: nohup sh ~/easyTravel/easytravel-2.0.0-x64/weblauncher/weblauncher.sh >/dev/null 2>&1 &
-    delegate_to: "{{ dt_process_host_ip_address }}"
+  #- name: Restart easytravel
+  #  shell: nohup sh ~/easyTravel/easytravel-2.0.0-x64/weblauncher/weblauncher.sh >/dev/null 2>&1 &
+  #  delegate_to: "{{ dt_process_host_ip_address }}"
 
-  - name: "wait for easytravel console to come up"
-    uri:
-      url: "http://localhost:8094/main"
-      status_code: 200
-    register: result
-    until: result.status == 200
-    retries: 15
-    delay: 10
-    delegate_to: "{{ dt_process_host_ip_address }}"
+#   - name: "wait for easytravel console to come up"
+#     uri:
+#       url: "http://localhost:8094/main"
+#       status_code: 200
+#     register: result
+#     until: result.status == 200
+#     retries: 15
+#     delay: 10
+#     delegate_to: "{{ dt_process_host_ip_address }}"
 
-  - name: Sleep for 15 seconds before refreshing easyTravel
-    wait_for:
-      timeout: 15
+#   - name: Sleep for 15 seconds before refreshing easyTravel
+#     wait_for:
+#       timeout: 15
 
-  - name: Refresh easytravel
-    become: true
-    become_user: ubuntu
-    command: timeout 30s /usr/bin/node easytravel.js
+#   - name: Refresh easytravel
+#     become: true
+#     become_user: ubuntu
+#     command: timeout 30s /usr/bin/node easytravel.js
+#     args:
+#       chdir: ~/node/
+#     delegate_to: "{{ dt_process_host_ip_address }}"
+    
+    
+  - name: Start easytravel backend
+    command: /home/ubuntu/easytravel-2.0.0-x64/jre/bin/java -Djava.net.preferIPv4Stack=true -Xmx160m -DentityExpansionLimit=500000 -jar /home/ubuntu/easytravel-2.0.0-x64/weblauncher/../com.dynatrace.easytravel.business.backend.jar -installationmode APM -propertyfile /root/.dynaTrace/easyTravel 2.0.0/easyTravel/tmp/easyTravelConfig6238130199877257868.properties -persistencemode jpa
     args:
-      chdir: ~/node/
-    delegate_to: "{{ dt_process_host_ip_address }}"
+       chdir: /home/easytravel-2.0.0-x64/business
 
-  - name: Sleep for 10 seconds
-    wait_for:
-      timeout: 10
+#   - name: Sleep for 10 seconds
+#     wait_for:
+#       timeout: 10
 
-  - name: Close chrome browser process
-    command: /usr/bin/pkill -f 'chrome'
-    ignore_errors: yes
-    delegate_to: "{{ dt_process_host_ip_address }}"
+#   - name: Close chrome browser process
+#     command: /usr/bin/pkill -f 'chrome'
+#     ignore_errors: yes
+#     delegate_to: "{{ dt_process_host_ip_address }}"
 
-  - name: "wait for easytravel portal to come up"
-    uri:
-      url: "http://localhost:8080/"
-      status_code: 200
-    register: result
-    until: result.status == 200
-    retries: 15
-    delay: 10
-    delegate_to: "{{ dt_process_host_ip_address }}"
+#   - name: "wait for easytravel portal to come up"
+#     uri:
+#       url: "http://localhost:8080/"
+#       status_code: 200
+#     register: result
+#     until: result.status == 200
+#     retries: 15
+#     delay: 10
+#     delegate_to: "{{ dt_process_host_ip_address }}"
 
   - name: 'push comment to dynatrace'
     uri:
