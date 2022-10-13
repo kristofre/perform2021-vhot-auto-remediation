@@ -57,10 +57,10 @@
 #     ignore_errors: yes
 #     delegate_to: "{{ dt_process_host_ip_address }}"
 
-  - name: Stop easyTravel backend
-    command: /usr/bin/pkill -f 'com.dynatrace.easytravel.business.backend.jar'
-    ignore_errors: yes
-    delegate_to: "{{ dt_process_host_ip_address }}"
+#   - name: Stop easyTravel backend
+#     command: /usr/bin/pkill -f 'com.dynatrace.easytravel.business.backend.jar'
+#     ignore_errors: yes
+#     delegate_to: "{{ dt_process_host_ip_address }}"
     
   - name: "Stop EasyTravel"
     uri:
