@@ -61,6 +61,13 @@
     command: /usr/bin/pkill -f 'com.dynatrace.easytravel.business.backend.jar'
     ignore_errors: yes
     delegate_to: "{{ dt_process_host_ip_address }}"
+    
+  - name: "Stop EasyTravel"
+    uri:
+      url: "http://localhost:8094/scenario/stop"
+      status_code: 200
+    register: result
+    delegate_to: "{{ dt_process_host_ip_address }}"
 
 #   - name: Sleep for 8 seconds
 #     wait_for:
@@ -92,14 +99,21 @@
 #       chdir: ~/node/
 #     delegate_to: "{{ dt_process_host_ip_address }}"
     
-  - name: List content of /home/ubuntu
-    command: ls /home/ubuntu
-    delegate_to: "{{ dt_process_host_ip_address }}"
+#   - name: List content of /home/ubuntu
+#     command: ls /home/ubuntu
+#     delegate_to: "{{ dt_process_host_ip_address }}"
   
-  - name: Start easytravel backend
-    shell: "/home/ubuntu/easytravel-2.0.0-x64/jre/bin/java -Djava.net.preferIPv4Stack=true -Xmx160m -DentityExpansionLimit=500000 -jar /home/ubuntu/easytravel-2.0.0-x64/weblauncher/../com.dynatrace.easytravel.business.backend.jar -installationmode APM -propertyfile /root/.dynaTrace/easyTravel 2.0.0/easyTravel/tmp/easyTravelConfig6238130199877257868.properties -persistencemode jpa &>/dev/null &"
-    args:
-       chdir: /home/ubuntu/easytravel-2.0.0-x64/business/
+#   - name: Start easytravel backend
+#     shell: "/home/ubuntu/easytravel-2.0.0-x64/jre/bin/java -Djava.net.preferIPv4Stack=true -Xmx160m -DentityExpansionLimit=500000 -jar /home/ubuntu/easytravel-2.0.0-x64/weblauncher/../com.dynatrace.easytravel.business.backend.jar -installationmode APM -propertyfile /root/.dynaTrace/easyTravel 2.0.0/easyTravel/tmp/easyTravelConfig6238130199877257868.properties -persistencemode jpa &>/dev/null &"
+#     args:
+#        chdir: /home/ubuntu/easytravel-2.0.0-x64/business/
+#     delegate_to: "{{ dt_process_host_ip_address }}"
+
+  - name: "Start EasyTravel"
+    uri:
+      url: "http://localhost:8094/scenario/start/UEM/Standard"
+      status_code: 200
+    register: result
     delegate_to: "{{ dt_process_host_ip_address }}"
 
 #   - name: Sleep for 10 seconds
