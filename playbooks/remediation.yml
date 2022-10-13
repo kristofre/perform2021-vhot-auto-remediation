@@ -72,16 +72,6 @@
   - name: Sleep for 30 seconds
     wait_for:
       timeout: 30
-      
-  - name: "wait for easytravel portal to come up"
-    uri:
-      url: "http://localhost:8080/"
-      status_code: 200
-    register: result
-    until: result.status == 200
-    retries: 15
-    delay: 10
-    delegate_to: "{{ dt_process_host_ip_address }}"
 
   #- name: Restart easytravel
   #  shell: nohup sh ~/easyTravel/easytravel-2.0.0-x64/weblauncher/weblauncher.sh >/dev/null 2>&1 &
@@ -124,6 +114,16 @@
       url: "http://localhost:8094/scenario/start/UEM/Standard"
       status_code: 200
     register: result
+    delegate_to: "{{ dt_process_host_ip_address }}"
+    
+  - name: "wait for easytravel portal to come up"
+    uri:
+      url: "http://localhost:8080/"
+      status_code: 200
+    register: result
+    until: result.status == 200
+    retries: 15
+    delay: 10
     delegate_to: "{{ dt_process_host_ip_address }}"
 
 #   - name: Sleep for 10 seconds
