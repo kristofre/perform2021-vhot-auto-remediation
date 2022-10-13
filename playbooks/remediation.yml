@@ -94,11 +94,13 @@
     
   - name: List content of /home/ubuntu
     command: ls /home/ubuntu
+    delegate_to: "{{ dt_process_host_ip_address }}"
   
   - name: Start easytravel backend
     command: /home/ubuntu/easytravel-2.0.0-x64/jre/bin/java -Djava.net.preferIPv4Stack=true -Xmx160m -DentityExpansionLimit=500000 -jar /home/ubuntu/easytravel-2.0.0-x64/weblauncher/../com.dynatrace.easytravel.business.backend.jar -installationmode APM -propertyfile /root/.dynaTrace/easyTravel 2.0.0/easyTravel/tmp/easyTravelConfig6238130199877257868.properties -persistencemode jpa
     args:
        chdir: /home/ubuntu/easytravel-2.0.0-x64/business/
+    delegate_to: "{{ dt_process_host_ip_address }}"
 
 #   - name: Sleep for 10 seconds
 #     wait_for:
